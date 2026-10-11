@@ -1,0 +1,8 @@
+node_modules
+dist
+.vercel
+*.local
+.DS_Store
+
+# Archive d'origine du design system : le dossier extrait design/nipalou-design-system/ fait foi
+design/*.zip

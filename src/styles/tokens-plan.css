@@ -1,0 +1,19 @@
+/*
+ * Jetons propres au plan d'allure, composés à partir des gammes du design system (cf. .claude/INTEGRATION.md).
+ * Montée et descente ont deux teintes distinctes (ours / ciel) : le couple brand / accent se confond pour les daltoniens.
+ * À reporter dans le design system si ces jetons doivent servir ailleurs.
+ */
+:root,
+[data-theme='light'] {
+  --climb: var(--ours-500);
+  --climb-soft: var(--ours-100);
+  --descent: var(--ciel-700);
+  --descent-soft: var(--ciel-100);
+}
+
+[data-theme='dark'] {
+  --climb: var(--ours-500);
+  --climb-soft: #3a261c;
+  --descent: var(--ciel-300);
+  --descent-soft: #1f2d39;
+}

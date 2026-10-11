@@ -1,0 +1,143 @@
+/* Tour du Nipalou — generated from tokens.json. Thème Nuit : <html data-theme="dark">. */
+:root, [data-theme="light"] {
+  --surface-100: var(--terre-50);
+  --surface-200: #fdfbf9;
+  --surface-300: var(--terre-100);
+  --surface-inverse: var(--sapin-900);
+  --ink: var(--terre-900);
+  --ink-muted: var(--terre-700);
+  --ink-inverse: #f4f0e9;
+  --line: var(--terre-200);
+  --line-strong: var(--terre-500);
+  --brand: var(--sapin-700);
+  --brand-hover: var(--sapin-800);
+  --brand-soft: var(--sapin-100);
+  --on-brand: #fcfaf6;
+  --accent: var(--ours-600);
+  --accent-hover: var(--ours-700);
+  --accent-soft: var(--ours-100);
+  --on-accent: #fefbf7;
+  --earth: var(--ours-800);
+  --earth-soft: var(--terre-100);
+  --highlight: var(--genet-400);
+  --on-highlight: var(--terre-900);
+  --focus: var(--ciel-600);
+  --link: var(--brand);
+  --success: var(--sapin-600);
+  --success-soft: var(--sapin-100);
+  --warning: var(--genet-600);
+  --warning-soft: var(--genet-100);
+  --danger: var(--brique-600);
+  --danger-soft: var(--brique-100);
+  --info: var(--ciel-700);
+  --info-soft: var(--ciel-100);
+  --sapin-900: #182b21;
+  --sapin-800: #254032;
+  --sapin-700: #375a45;
+  --sapin-600: #486f57;
+  --sapin-500: #60866f;
+  --sapin-400: #7c9f89;
+  --sapin-300: #9fbba9;
+  --sapin-200: #c1d5c8;
+  --sapin-100: #deeae2;
+  --sapin-50: #eff6f1;
+  --ours-900: #352117;
+  --ours-800: #4f3122;
+  --ours-700: #704530;
+  --ours-600: #8b553a;
+  --ours-500: #a76b4d;
+  --ours-400: #bf866b;
+  --ours-300: #d6a790;
+  --ours-200: #e9c7b7;
+  --ours-100: #f5e2d9;
+  --ours-50: #fbf2ed;
+  --terre-900: #2d251c;
+  --terre-800: #40382e;
+  --terre-700: #584f45;
+  --terre-600: #6c6359;
+  --terre-500: #837a71;
+  --terre-400: #9c948b;
+  --terre-300: #b9b1a9;
+  --terre-200: #d5cec6;
+  --terre-100: #ece5de;
+  --terre-50: #f7f3ee;
+  --ciel-700: #3b566d;
+  --ciel-600: #4b6a84;
+  --ciel-300: #a3bbd0;
+  --ciel-200: #c0d0e0;
+  --ciel-100: #e5ecf3;
+  --genet-600: #84631c;
+  --genet-400: #dbb155;
+  --genet-100: #f8eed5;
+  --brique-600: #a04038;
+  --brique-300: #e09e96;
+  --brique-100: #fae6e3;
+  --shadow-sm: 0 1px 2px #2d251c0f, 0 2px 6px #2d251c0d;
+  --shadow-md: 0 4px 10px #2d251c12, 0 14px 32px -6px #2d251c24;
+  --focus-ring: 0 0 0 2px #f7f3ee, 0 0 0 4px #4b6a84;
+}
+[data-theme="dark"] {
+  --surface-100: #0e1411;
+  --surface-200: #151d18;
+  --surface-300: #1d2621;
+  --surface-inverse: #060a08;
+  --ink: #eee9e1;
+  --ink-muted: #b6b0a7;
+  --ink-inverse: #eee9e1;
+  --line: #2d3530;
+  --line-strong: #747d77;
+  --brand: var(--sapin-300);
+  --brand-hover: var(--sapin-200);
+  --brand-soft: #1f3025;
+  --on-brand: #0e1912;
+  --accent: var(--ours-400);
+  --accent-hover: var(--ours-300);
+  --accent-soft: #3a261c;
+  --on-accent: #21120a;
+  --earth: var(--ours-200);
+  --earth-soft: #30271f;
+  --highlight: #d8b260;
+  --on-highlight: #281d0f;
+  --focus: var(--ciel-300);
+  --link: var(--brand);
+  --success: #99c8a5;
+  --success-soft: #1f2e23;
+  --warning: #e2bf76;
+  --warning-soft: #332a16;
+  --danger: #e1988f;
+  --danger-soft: #3f221f;
+  --info: #a6c1d9;
+  --info-soft: #1f2d39;
+  --shadow-sm: 0 1px 3px #00000099;
+  --shadow-md: 0 14px 32px -6px #000000cc;
+  --focus-ring: 0 0 0 2px #0e1411, 0 0 0 4px #a3bbd0;
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-16: 64px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+/* Styles de texte : classes .np-<style> */
+.np-display-xl { font-family: var(--font-display); font-size: 72px; line-height: 68px; font-weight: 600; letter-spacing: -0.01em; }
+.np-display { font-family: var(--font-display); font-size: 44px; line-height: 46px; font-weight: 600; }
+.np-heading { font-family: var(--font-display); font-size: 28px; line-height: 32px; font-weight: 600; }
+.np-figure { font-family: var(--font-display); font-size: 56px; line-height: 52px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.np-eyebrow { font-family: var(--font-display); font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.np-title { font-family: var(--font-sans); font-size: 20px; line-height: 28px; font-weight: 600; }
+.np-body-lg { font-family: var(--font-sans); font-size: 18px; line-height: 30px; font-weight: 400; }
+.np-body { font-family: var(--font-sans); font-size: 16px; line-height: 26px; font-weight: 400; }
+.np-body-sm { font-family: var(--font-sans); font-size: 14px; line-height: 22px; font-weight: 400; }
+.np-label { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 600; }
+.np-caption { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; }

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tour du Nipalou — composants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components/bundle.css">
+<style>
+  .wrap { max-width: 1120px; margin: 0 auto; padding: var(--space-10) var(--space-4) var(--space-16); }
+  .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-4); margin-bottom: var(--space-8); }
+  .top h1 { margin: 0; color: var(--ink); }
+  section { margin-top: var(--space-10); }
+  section > h2 { margin: 0 0 var(--space-3); color: var(--earth); }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="components/bundle.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><p class="np-eyebrow" style="margin:0;color:var(--ink-muted)">Lorcières · 25 octobre 2026</p><h1 class="np-display">Tour du Nipalou</h1></div>
+    <button class="np-btn np-btn--secondary np-btn--sm" id="theme">Thème Nuit</button>
+  </div>
+  <div id="root"></div>
+</div>
+<script>
+  var N = window.Nipalou, h = React.createElement;
+  var btn = document.getElementById('theme');
+  btn.onclick = function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+    btn.textContent = dark ? 'Thème Nuit' : 'Thème Jour';
+  };
+  function S(title) { return h('section', null, h('h2', { className: 'np-heading' }, title), Array.prototype.slice.call(arguments, 1)); }
+  var pts = [[0,1040],[1,1066],[2,1118],[3,1186],[3.8,1242],[4.5,1214],[5.2,1262],[6,1336],[6.8,1312],[7.5,1252],[8.3,1188],[9,1216],[9.8,1152],[10.6,1094],[11.4,1058],[12,1040]];
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    S('Boutons', h('div', { className: 'np-demo', style: { padding: 0 } },
+      h(N.Button, { variant: 'accent', icon: 'arrow-right' }, "S'inscrire"),
+      h(N.Button, null, 'Voir les courses'),
+      h(N.Button, { variant: 'secondary' }, 'Télécharger le règlement'),
+      h(N.Button, { variant: 'ghost' }, 'Profil du 53 km'))),
+    S('Tags', h('div', { className: 'np-demo', style: { padding: 0 } },
+      h(N.Tag, { tone: 'brand' }, 'Qualificatif France 2027'), h(N.Tag, { tone: 'accent' }, '3 pts UTMB Index'),
+      h(N.Tag, { tone: 'highlight' }, 'Nouveau parcours'), h(N.Tag, { tone: 'earth' }, 'Jeunes'), h(N.Tag, { tone: 'info', icon: 'clock' }, 'Départ libre'))),
+    S('Courses', h('div', { className: 'np-demo np-demo--grid', style: { padding: 0 } },
+      h(N.RaceCard, { distance: 53, title: 'Trail long', details: [{ icon: 'clock', label: 'Départ', value: '8h00' }, { icon: 'users', label: 'Catégories', value: 'Espoir et +' }],
+        tags: [{ label: 'Qualificatif France 2027', tone: 'brand' }, { label: '3 pts UTMB Index', tone: 'accent' }], ctaLabel: "S'inscrire", secondaryLabel: 'Profil' }),
+      h(N.RaceCard, { distance: 21, title: 'Trail court', details: [{ icon: 'clock', label: 'Départ', value: '10h00' }, { icon: 'users', label: 'Catégories', value: 'Espoir et +' }],
+        tags: [{ label: 'Qualificatif France 2027', tone: 'brand' }, { label: '1 pt UTMB Index', tone: 'accent' }], ctaLabel: 'Voir la course', ctaVariant: 'primary', secondaryLabel: 'Profil' }),
+      h(N.RaceCard, { distance: '6–18', title: 'Randonnées', tone: 'info', details: [{ icon: 'clock', label: 'Départ libre', value: '9h00–10h30' }, { icon: 'users', label: 'Catégories', value: 'Tous âges' }],
+        tags: [{ label: '6, 9 ou 18 km', tone: 'info' }], ctaLabel: 'Voir les randos', ctaVariant: 'secondary' }))),
+    S('Profil', h(N.ElevationProfile, { title: 'Parcours d’exemple', points: pts, height: 220, markers: [{ km: 4.5, label: 'Ravito 1' }, { km: 9, label: 'Ravito 2' }] })),
+    S('Résultats', h(N.ResultsTable, { caption: '21 km — scratch (données d’exemple)', rows: [
+      { bib: 112, name: 'Camille Martin', category: 'SEH', club: 'AC Margeride', time: '1:38:12' },
+      { bib: 87, name: 'Julien Bernard', category: 'M1H', club: 'Trail Saint-Flour', time: '1:41:05' },
+      { bib: 204, name: 'Léa Roux', category: 'SEF', club: 'Running Aurillac', time: '1:44:47' },
+      { bib: 15, name: 'Thomas Girard', category: 'M2H', club: 'Individuel', time: '1:46:30' }] })),
+    S('Messages', h('div', { className: 'np-demo np-demo--col', style: { padding: 0 } },
+      h(N.Notice, { tone: 'info', title: 'Course éco-responsable' }, 'Plus de gobelets jetables : une timbale pliable est en vente au retrait des dossards.'),
+      h(N.Notice, { tone: 'warning' }, 'Inscription sur place majorée de 3 € pour les courses comme pour les randos.'),
+      h(N.Notice, { tone: 'success', title: 'Inscription confirmée' }, 'Dossard 15 · 21 km · départ 10h00.'),
+      h(N.Notice, { tone: 'danger' }, 'Le certificat médical n’est plus accepté pour les majeurs : joignez une licence FFA ou un PPS.'))),
+    S('Dossard et formulaire', h('div', { className: 'np-demo', style: { padding: 0, alignItems: 'flex-start', gap: '32px' } },
+      h(N.Bib, { number: 15, race: '21 km' }),
+      h('div', { style: { display: 'grid', gap: '16px', flex: '1 1 300px' } },
+        h(N.TextField, { label: 'Numéro de licence FFA', placeholder: 'Ex. 1234567', hint: 'Ou numéro de PPS (5 €, valable un an).' }),
+        h(N.TextField, { label: 'Date de naissance', defaultValue: '31/02/2008', error: 'Date invalide : vérifiez le jour et le mois.' }))))
+  ));
+</script>
+</body>
+</html>
