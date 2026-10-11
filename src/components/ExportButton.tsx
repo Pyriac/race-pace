@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { renderPlanImage, type PlanImageInput } from '../export/renderPlanImage';
-import { shareOrDownload } from '../export/shareImage';
+import { downloadImage } from '../export/downloadImage';
 import { hms } from '../lib/format';
 import { Button } from './ds/Button';
 
@@ -16,7 +16,7 @@ export function ExportButton({ courseId, ...input }: Props) {
     try {
       const canvas = await renderPlanImage(input);
       const time = hms(input.schedule.totalSeconds).replace(/:/g, '-');
-      await shareOrDownload(canvas, `plan-allure-${courseId}-${time}.png`);
+      await downloadImage(canvas, `plan-allure-${courseId}-${time}.png`);
     } catch (err) {
       console.error(err);
     } finally {

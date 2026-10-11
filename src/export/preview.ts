@@ -19,7 +19,7 @@ for (const course of courses) {
   for (const threshold of [THRESHOLDS.large, THRESHOLDS.moyen, THRESHOLDS.fin]) {
     const plan = computePlan(prepared, { threshold, descentWeight });
     const canvas = await renderPlanImage({
-      courseName: course.data.name ?? course.label,
+      courseLabel: course.label,
       prepared,
       plan,
       schedule: sectionSchedule(plan, total),

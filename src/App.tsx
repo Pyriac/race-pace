@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import logoUrl from './assets/logo-tour-du-nipalou.png';
+import logoNightUrl from './assets/nipalou-coureur-logo-nuit.svg';
+import logoUrl from './assets/nipalou-coureur-logo.svg';
 import { ExportButton } from './components/ExportButton';
 import { MethodSection } from './components/MethodSection';
 import { PaceSummary } from './components/PaceSummary';
@@ -34,7 +35,9 @@ export function App() {
     <main className="page">
       <header className="head">
         <div className="head__logo">
-          <img src={logoUrl} alt="Tour du Nipalou" width={120} height={102} />
+          {/* Version Jour ou Nuit selon le thème actif (voir global.css). */}
+          <img className="head__logo--day" src={logoUrl} alt="Tour du Nipalou" width={374} height={96} />
+          <img className="head__logo--night" src={logoNightUrl} alt="Tour du Nipalou" width={374} height={96} />
         </div>
         <div className="head__text">
           <p className="eyebrow">Tour du Nipalou · {course.source}</p>
@@ -113,7 +116,7 @@ export function App() {
 
       <ExportButton
         courseId={course.id}
-        courseName={course.data.name ?? `Tour du Nipalou ${course.label}`}
+        courseLabel={course.label}
         prepared={prepared}
         plan={plan}
         schedule={schedule}

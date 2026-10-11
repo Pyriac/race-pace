@@ -127,7 +127,7 @@ Le site propose de télécharger le plan pour l'avoir sous les yeux pendant la c
   1 · Montée · km 0,0 → 5,0 · +427 m · 9,22 km-effort · 9:35 /km · passage 0:47:25
   ```
 
-  Le type est écrit en toutes lettres : le texte se lit sans couleur. Dans le site, au-delà de 16 sections (53 km), la liste passe sur deux colonnes : le mot et la plage de km sont alors retirés, le type se lit par l'icône et le signe du dénivelé.
+  **Choix retenu dans le site après les premiers tests** : chaque ligne ne garde que le pictogramme de pente, la distance cumulée en fin de section, le dénivelé de la section (+427 m / −257 m), la distance de la section et le passage (colonnes KM, DÉNIV., DIST., PASS.). Le type se lit sans couleur par la forme du pictogramme et le signe du dénivelé. Au-delà de 16 sections (53 km), la liste passe sur deux colonnes. Le bouton télécharge directement le PNG, sans feuille de partage.
 - **En tête, les réglages** : course, temps visé, allure moyenne, km-effort du parcours, découpage, et le profil du coureur s'il n'est pas équilibré. Deux documents faits avec des objectifs différents doivent se distinguer sans la page.
 - **Le nombre de lignes varie.** De 7 à 16 sur le 21 km selon le découpage, davantage sur un parcours plus long. Le profil reste en bas quelle que soit la longueur de la liste.
 - **Profil en bas** : `prepared.alt` pour la courbe, les bornes `startIndex` / `endIndex` pour les sections, et les mêmes numéros que dans les lignes pour faire le lien entre texte et profil.

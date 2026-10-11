@@ -37,11 +37,11 @@ src/
     SectionProfile              Profil coloré par section, survol avec temps de passage
     SectionsTable               Tableau des sections (empilé sous 640 px)
     MethodSection               Méthode et coût selon la pente
-    ExportButton                Génère et partage l'image
+    ExportButton                Génère et télécharge l'image
     ds/                         Composants du design system portés en TSX
   export/
-    renderPlanImage.ts          Image 1080×1920 : réglages, sections, profil en bas (rendu clair fixe)
-    shareImage.ts               Feuille de partage native sur mobile, sinon téléchargement PNG
+    renderPlanImage.ts          Image 1080×1920 : réglages, puis par section pictogramme, km cumulé, dénivelé, distance, passage ; profil en bas
+    downloadImage.ts            Téléchargement direct du PNG (sans feuille de partage)
   styles/
     tokens-plan.css             Jetons climb / descent (composés depuis les gammes ours / ciel)
     global.css                  Styles de la page de référence, sur les jetons du design system
@@ -57,7 +57,7 @@ Voir `src/data/README.md` : une commande pour convertir le GPX, une ligne dans `
 - Écarts documentés : teintes montée / descente (`tokens-plan.css`), profil coloré par section (variante d'`ElevationProfile`), icônes `trend-up`, `trend-down` et `download` ajoutées.
 - Thème Jour / Nuit selon le système ; l'image exportée reste en thème Jour, lisible dehors.
 - Polices Barlow / Barlow Condensed auto-hébergées via `@fontsource`.
-- Le logo est une capture basse définition : remplacer `src/assets/logo-tour-du-nipalou.png` et `public/favicon.png` par le fichier source.
+- Logo : sources dans `logos/` ; versions Jour et Nuit dans `src/assets/` (la page affiche celle du thème actif, l'image exportée la version Jour) ; pictogramme en favicon (`public/favicon.svg`, `public/apple-touch-icon.png`).
 
 ## Déploiement Vercel
 

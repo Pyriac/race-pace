@@ -20,14 +20,13 @@ a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; 
 a:hover { color: var(--brand-hover); }
 a:focus-visible { outline: 2px solid transparent; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 
-/* En-tête : logo sur surface-200 (marge space-6), titre et chapeau */
-.head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5) var(--space-8); }
-.head__logo {
-  flex: none; padding: var(--space-6); background: var(--surface-200);
-  border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
-}
-.head__logo img { display: block; width: 120px; height: auto; }
-.head__text { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+/* En-tête : logo horizontal (Jour / Nuit selon le thème), puis titre et chapeau */
+.head { display: flex; flex-direction: column; gap: var(--space-6); }
+.head__logo img { display: block; width: 280px; max-width: 100%; height: auto; }
+.head__logo--night { display: none !important; }
+[data-theme='dark'] .head__logo--day { display: none !important; }
+[data-theme='dark'] .head__logo--night { display: block !important; }
+.head__text { min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .eyebrow {
   font-family: var(--font-display); font-size: 13px; line-height: 16px; font-weight: 600;
   letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted);
