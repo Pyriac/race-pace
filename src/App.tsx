@@ -120,6 +120,7 @@ export function App() {
         prepared={prepared}
         plan={plan}
         schedule={schedule}
+        aidStations={course.aidStations}
       />
     </main>
   );

@@ -23,6 +23,23 @@ Dès qu'il y a deux courses, le sélecteur « Course » apparaît en haut de la 
 
 Courses actuelles : 21 km (trace 2024, D+ annoncé 1 020 m) et 53 km (trace Garmin « Nipalou 2025 », D+ annoncé 2 120 m, 2 124 m sur la trace).
 
+## Ravitaillements
+
+Champ `aidStations` de chaque course dans `courses/index.ts` :
+
+```ts
+aidStations: [
+  { km: 6.2, type: 'eau' },      // point d'eau
+  { km: 12.4, type: 'complet' }, // ravitaillement complet
+],
+```
+
+- `km` : position depuis le départ, au dixième. L'ordre n'importe pas, la liste est triée.
+- `type` : `'eau'` (pictogramme bouteille, « Point d'eau ») ou `'complet'` (couverts, « Ravitaillement complet »).
+- `name` : nom du lieu, facultatif, non affiché pour l'instant.
+
+Dans l'image téléchargée, chaque ravito devient une ligne entre les sections, à son kilométrage (logique dans `src/lib/aid-stations.ts`). Un ravito à moins de 50 m de la fin d'une section est placé après elle ; un ravito hors du parcours est ignoré. Aperçu avec des ravitos fictifs : `/export-preview.html?ravitos=demo`.
+
 ## Format
 
 ```json

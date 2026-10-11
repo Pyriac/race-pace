@@ -2,6 +2,7 @@
 // Mêmes chiffres que le tableau (schedule.rows, rien n'est recalculé), rendu clair fixe indépendant du thème.
 // Une ligne par section : pictogramme de pente, distance cumulée, dénivelé et distance de la section, passage.
 import logoUrl from '../assets/nipalou-coureur-logo.svg';
+import { aidLabel, mergeAidStations, type AidStation, type AidType } from '../lib/aid-stations';
 import { NB, dec, hms, int, ms } from '../lib/format';
 import type { Plan, PreparedCourse, Schedule } from '../lib/pace-model';
 
@@ -20,6 +21,8 @@ const C = {
   climbSoft: '#f5e2d9',
   descent: '#3b566d',
   descentSoft: '#e5ecf3',
+  /** Bandeau des lignes de ravito (brand-soft du thème Jour). */
+  aidSoft: '#deeae2',
 };
 const FONT_SANS = '"Barlow", system-ui, sans-serif';
 const FONT_DISPLAY = '"Barlow Condensed", "Arial Narrow", sans-serif';
@@ -45,9 +48,11 @@ export interface PlanImageInput {
   prepared: PreparedCourse;
   plan: Plan;
   schedule: Schedule;
+  /** Ravitaillements de la course, insérés comme lignes à leur kilométrage. */
+  aidStations?: AidStation[];
 }
 
-export async function renderPlanImage({ courseLabel, prepared, plan, schedule }: PlanImageInput): Promise<HTMLCanvasElement> {
+export async function renderPlanImage({ courseLabel, prepared, plan, schedule, aidStations = [] }: PlanImageInput): Promise<HTMLCanvasElement> {
   const [logo] = await Promise.all([loadImage(logoUrl), loadFonts()]);
 
   const canvas = document.createElement('canvas');
@@ -60,13 +65,15 @@ export async function renderPlanImage({ courseLabel, prepared, plan, schedule }:
   ctx.fillRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
 
   const rows = schedule.rows;
+  // Lignes de l'image : sections et ravitos, dans l'ordre du parcours.
+  const lines = mergeAidStations(rows, aidStations, prepared.lengthM);
   const contentW = IMAGE_WIDTH - PAD_X * 2;
   const LIST_CHROME = 110; // en-tête de colonnes + marges de la carte
   const profileTop = IMAGE_HEIGHT - SAFE_BOTTOM - PROFILE_H;
 
   // Parcours longs : deux colonnes, sinon les lignes deviennent illisibles.
-  const twoCols = rows.length > TWO_COLUMNS_FROM;
-  const perCol = Math.ceil(rows.length / (twoCols ? 2 : 1));
+  const twoCols = lines.length > TWO_COLUMNS_FROM;
+  const perCol = Math.ceil(lines.length / (twoCols ? 2 : 1));
 
   // En-tête : logo, puis temps visé (128 px) et ligne de réglages.
   const HEADER_H = LOGO_H + 174 + 56 + 40;
@@ -169,8 +176,17 @@ export async function renderPlanImage({ courseLabel, prepared, plan, schedule }:
   }
   ctx.letterSpacing = '0px';
 
-  rows.forEach((r, k) => {
-    const c = cells[k]!;
+  // Ravitos : le libellé est raccourci, puis la police réduite, s'il ne tient pas dans la colonne.
+  const aidText = (aid: AidStation, short: boolean) => `${aidLabel(aid.type, short)} · km ${dec(aid.km, 1)}`;
+  const aidRoom = colW - widths.icon - gap;
+  const aidFits = (short: boolean, size: number) =>
+    widest(fontKm(size), lines.flatMap((l) => (l.kind === 'aid' ? [aidText(l.aid, short)] : [''])) ) <= aidRoom;
+  const aidShort = !aidFits(false, f);
+  let aidF = f;
+  while (aidF > 16 && !aidFits(aidShort, aidF)) aidF--;
+
+  let sectionIdx = 0;
+  lines.forEach((line, k) => {
     const cx = ix + Math.floor(k / perCol) * (colW + COL_GAP);
     const row = k % perCol;
     const y = listTop + 70 + row * rowH;
@@ -180,6 +196,15 @@ export async function renderPlanImage({ courseLabel, prepared, plan, schedule }:
       ctx.fillStyle = C.line;
       ctx.fillRect(cx, y, colW, 2);
     }
+    if (line.kind === 'aid') {
+      // Ligne de ravito sur toute la largeur : bandeau teinté, pictogramme bouteille ou couverts, libellé et km.
+      roundRect(ctx, cx - 12, y + 5, colW + 24, rowH - 8, 12, C.aidSoft);
+      aidIcon(ctx, cx, mid, f * 1.1, line.aid.type);
+      text(ctx, aidText(line.aid, aidShort), cx + widths.icon + gap, mid + aidF * 0.35, fontKm(aidF), C.ink);
+      return;
+    }
+    const r = line.row;
+    const c = cells[sectionIdx++]!;
     // Pictogramme de pente (forme et couleur) : seul repère du type de section, avec le signe du dénivelé.
     trendIcon(ctx, cx, mid, f * 1.1, r.climb);
     text(ctx, c.km, cx + col.km, base, fontKm(f), C.ink, 'right');
@@ -255,6 +280,29 @@ function trendIcon(ctx: CanvasRenderingContext2D, x: number, cy: number, size: n
   ctx.lineJoin = 'round';
   ctx.stroke(new Path2D(up ? 'M22 7 13.5 15.5 8.5 10.5 2 17' : 'M22 17 13.5 8.5 8.5 13.5 2 7'));
   ctx.stroke(new Path2D(up ? 'M16 7h6v6' : 'M16 17h6v-6'));
+  ctx.restore();
+}
+
+/** Pictogrammes de ravito (tracés Lucide, grille 24 px) : bouteille (« milk ») et couverts (« utensils »). */
+const AID_ICON: Record<AidType, string[]> = {
+  eau: [
+    'M8 2h8',
+    'M9 2v2.789a4 4 0 0 1-.672 2.219l-.656.984A4 4 0 0 0 7 10.212V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9.789a4 4 0 0 0-.672-2.219l-.656-.984A4 4 0 0 1 15 4.788V2',
+    'M7 15a6.472 6.472 0 0 1 5 0 6.47 6.47 0 0 0 5 0',
+  ],
+  complet: ['M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2', 'M7 2v20', 'M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'],
+};
+
+function aidIcon(ctx: CanvasRenderingContext2D, x: number, cy: number, size: number, type: AidType) {
+  const s = size / 24;
+  ctx.save();
+  ctx.translate(x, cy - size / 2);
+  ctx.scale(s, s);
+  ctx.strokeStyle = C.brand;
+  ctx.lineWidth = 2.25;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const d of AID_ICON[type]) ctx.stroke(new Path2D(d));
   ctx.restore();
 }
 

@@ -1,3 +1,4 @@
+import type { AidStation } from '../../lib/aid-stations';
 import type { CourseData } from '../../lib/pace-model';
 import nipalou21 from './nipalou-21km.json';
 import nipalou53 from './nipalou-53km.json';
@@ -11,6 +12,8 @@ export interface CourseEntry {
   source: string;
   /** D+ officiel annoncé, pour la note d'écart avec la trace (optionnel). */
   officialDPlus?: number;
+  /** Ravitaillements : km depuis le départ et type (« eau » ou « complet »). Ajoutés comme lignes dans l'image. */
+  aidStations?: AidStation[];
   data: CourseData;
 }
 
@@ -19,8 +22,31 @@ export interface CourseEntry {
  * Ajouter une course : générer le JSON avec scripts/gpx-to-course.mjs, l'importer ici, l'ajouter au tableau.
  */
 export const courses: CourseEntry[] = [
-  { id: 'nipalou-21km', label: '21 km', source: 'Trace GPX 2024', officialDPlus: 1020, data: nipalou21 },
-  { id: 'nipalou-53km', label: '53 km', source: 'Trace GPX 2025', officialDPlus: 2120, data: nipalou53 },
+  {
+    id: 'nipalou-21km',
+    label: '21 km',
+    source: 'Trace GPX 2024',
+    officialDPlus: 1020,
+    aidStations: [
+      { km: 4.1, type: 'eau' },
+      { km: 11.3, type: 'complet' },
+      { km: 17.5, type: 'complet' },
+    ],
+    data: nipalou21,
+  },
+  {
+    id: 'nipalou-53km',
+    label: '53 km',
+    source: 'Trace GPX 2025',
+    officialDPlus: 2120,
+    aidStations: [
+      { km: 4.1, type: 'eau' },
+      { km: 23.1, type: 'complet' },
+      { km: 29.7, type: 'complet' },
+      { km: 38.5, type: 'complet' },
+    ],
+    data: nipalou53,
+  },
 ];
 
 export function findCourse(id: string | null | undefined): CourseEntry | undefined {
