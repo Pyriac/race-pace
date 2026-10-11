@@ -1,9 +1,11 @@
+import { aidLabel, type TimedSchedule } from '../lib/aid-stations';
 import { NB, dec, dur, hms, int, ms, signedDec } from '../lib/format';
-import type { PreparedCourse, Schedule } from '../lib/pace-model';
+import type { PreparedCourse } from '../lib/pace-model';
 import { Icon } from './ds/Icon';
 
 interface Props {
-  schedule: Schedule;
+  /** Plan avec ravitos : une ligne par ravito (arrêt et heure d'arrivée) entre les sections. */
+  schedule: TimedSchedule;
   prepared: PreparedCourse;
   /** Km-effort ITRA du parcours (ligne de total). */
   kmEffort: number;
@@ -40,7 +42,27 @@ export function SectionsTable({ schedule, prepared, kmEffort, active, onHover }:
             </tr>
           </thead>
           <tbody onPointerLeave={() => onHover(-1)}>
-            {schedule.rows.map((r, k) => (
+            {schedule.lines.map((line) => {
+              if (line.kind === 'aid') {
+                const { aid } = line;
+                return (
+                  <tr key={`aid-${aid.km}`} className="aid-row" onPointerOver={() => onHover(-1)}>
+                    <td colSpan={9}>
+                      <span className="aid">
+                        <Icon name={aid.type === 'eau' ? 'milk' : 'utensils'} size={18} className="aid__icon" />
+                        <span>
+                          {aidLabel(aid.type)} · km {dec(aid.km, 1)}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="num time" data-label="Arrêt">{line.stopSeconds ? dur(line.stopSeconds) : '–'}</td>
+                    <td className="num time" data-label="Arrivée">{hms(line.arrivalSeconds)}</td>
+                  </tr>
+                );
+              }
+              const r = line.row;
+              const k = r.index - 1;
+              return (
               <tr key={r.index} className={k === active ? 'is-active' : undefined} onPointerOver={() => onHover(k)}>
                 <td>
                   <span className="sec">
@@ -67,7 +89,8 @@ export function SectionsTable({ schedule, prepared, kmEffort, active, onHover }:
                 <td className="num time" data-label="Temps">{dur(r.seconds)}</td>
                 <td className="num time" data-label="Passage">{hms(r.passageSeconds)}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
           <tfoot>
             <tr>

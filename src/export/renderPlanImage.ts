@@ -2,9 +2,9 @@
 // Mêmes chiffres que le tableau (schedule.rows, rien n'est recalculé), rendu clair fixe indépendant du thème.
 // Une ligne par section : pictogramme de pente, distance cumulée, dénivelé et distance de la section, passage.
 import logoUrl from '../assets/nipalou-coureur-logo.svg';
-import { aidLabel, mergeAidStations, type AidStation, type AidType } from '../lib/aid-stations';
+import { aidLabel, type AidStation, type AidType, type TimedSchedule } from '../lib/aid-stations';
 import { NB, dec, hms, int, ms } from '../lib/format';
-import type { Plan, PreparedCourse, Schedule } from '../lib/pace-model';
+import type { Plan, PreparedCourse } from '../lib/pace-model';
 
 export const IMAGE_WIDTH = 1080;
 export const IMAGE_HEIGHT = 1920;
@@ -47,12 +47,11 @@ export interface PlanImageInput {
   courseLabel: string;
   prepared: PreparedCourse;
   plan: Plan;
-  schedule: Schedule;
-  /** Ravitaillements de la course, insérés comme lignes à leur kilométrage. */
-  aidStations?: AidStation[];
+  /** Plan avec ravitos : ses lignes (sections et ravitos) et ses passages, arrêts compris. */
+  schedule: TimedSchedule;
 }
 
-export async function renderPlanImage({ courseLabel, prepared, plan, schedule, aidStations = [] }: PlanImageInput): Promise<HTMLCanvasElement> {
+export async function renderPlanImage({ courseLabel, prepared, plan, schedule }: PlanImageInput): Promise<HTMLCanvasElement> {
   const [logo] = await Promise.all([loadImage(logoUrl), loadFonts()]);
 
   const canvas = document.createElement('canvas');
@@ -66,7 +65,7 @@ export async function renderPlanImage({ courseLabel, prepared, plan, schedule, a
 
   const rows = schedule.rows;
   // Lignes de l'image : sections et ravitos, dans l'ordre du parcours.
-  const lines = mergeAidStations(rows, aidStations, prepared.lengthM);
+  const lines = schedule.lines;
   const contentW = IMAGE_WIDTH - PAD_X * 2;
   const LIST_CHROME = 110; // en-tête de colonnes + marges de la carte
   const profileTop = IMAGE_HEIGHT - SAFE_BOTTOM - PROFILE_H;
@@ -176,14 +175,36 @@ export async function renderPlanImage({ courseLabel, prepared, plan, schedule, a
   }
   ctx.letterSpacing = '0px';
 
-  // Ravitos : le libellé est raccourci, puis la police réduite, s'il ne tient pas dans la colonne.
-  const aidText = (aid: AidStation, short: boolean) => `${aidLabel(aid.type, short)} · km ${dec(aid.km, 1)}`;
-  const aidRoom = colW - widths.icon - gap;
-  const aidFits = (short: boolean, size: number) =>
-    widest(fontKm(size), lines.flatMap((l) => (l.kind === 'aid' ? [aidText(l.aid, short)] : [''])) ) <= aidRoom;
-  const aidShort = !aidFits(false, f);
+  // Ravitos : à droite, durée d'arrêt (alignée sur DIST.) et heure d'arrivée (alignée sur PASS.) ;
+  // le libellé prend la place restante. Paliers si la place manque : libellé complet, court, puis km seul
+  // (le pictogramme indique déjà le type), et enfin police réduite.
+  const aidLines = lines.flatMap((l) => (l.kind === 'aid' ? [l] : []));
+  const stopText = (s: number) => (s > 0 ? `arrêt ${stopLabel(s)}` : '');
+  const aidText = (aid: AidStation, level: number) =>
+    level >= 2 ? `km ${dec(aid.km, 1)}` : `${aidLabel(aid.type, level === 1)} · km ${dec(aid.km, 1)}`;
+  const aidRoom = (stopSeconds: number, size: number) => {
+    ctx.font = fontVal(size);
+    const stopW = stopSeconds > 0 ? ctx.measureText(stopText(stopSeconds)).width + gap : 0;
+    return col.dist - stopW - (widths.icon + gap);
+  };
+  const aidFits = (level: number, size: number) =>
+    aidLines.every((l) => {
+      ctx.font = fontKm(size);
+      return ctx.measureText(aidText(l.aid, level)).width <= aidRoom(l.stopSeconds, size);
+    });
+  // Ordre : complet, court, court en police réduite (jusqu'à 80 %), puis km seul.
+  let aidLevel = 0;
   let aidF = f;
-  while (aidF > 16 && !aidFits(aidShort, aidF)) aidF--;
+  if (!aidFits(0, f)) {
+    aidLevel = 1;
+    const minF = Math.max(16, Math.round(f * 0.8));
+    while (aidF > minF && !aidFits(1, aidF)) aidF--;
+    if (!aidFits(1, aidF)) {
+      aidLevel = 2;
+      aidF = f;
+      while (aidF > 16 && !aidFits(2, aidF)) aidF--;
+    }
+  }
 
   let sectionIdx = 0;
   lines.forEach((line, k) => {
@@ -197,10 +218,13 @@ export async function renderPlanImage({ courseLabel, prepared, plan, schedule, a
       ctx.fillRect(cx, y, colW, 2);
     }
     if (line.kind === 'aid') {
-      // Ligne de ravito sur toute la largeur : bandeau teinté, pictogramme bouteille ou couverts, libellé et km.
+      // Ligne de ravito sur toute la largeur : bandeau teinté, pictogramme bouteille ou couverts,
+      // libellé et km, durée d'arrêt, heure d'arrivée.
       roundRect(ctx, cx - 12, y + 5, colW + 24, rowH - 8, 12, C.aidSoft);
       aidIcon(ctx, cx, mid, f * 1.1, line.aid.type);
-      text(ctx, aidText(line.aid, aidShort), cx + widths.icon + gap, mid + aidF * 0.35, fontKm(aidF), C.ink);
+      text(ctx, aidText(line.aid, aidLevel), cx + widths.icon + gap, mid + aidF * 0.35, fontKm(aidF), C.ink);
+      if (line.stopSeconds > 0) text(ctx, stopText(line.stopSeconds), cx + col.dist, base, fontVal(f), C.inkMuted, 'right');
+      text(ctx, hms(line.arrivalSeconds), cx + col.passage, base + 1, fontPass(f), C.ink, 'right');
       return;
     }
     const r = line.row;
@@ -281,6 +305,11 @@ function trendIcon(ctx: CanvasRenderingContext2D, x: number, cy: number, size: n
   ctx.stroke(new Path2D(up ? 'M22 7 13.5 15.5 8.5 10.5 2 17' : 'M22 17 13.5 8.5 8.5 13.5 2 7'));
   ctx.stroke(new Path2D(up ? 'M16 7h6v6' : 'M16 17h6v-6'));
   ctx.restore();
+}
+
+/** 30 → « 30 s », 180 → « 3 min » */
+function stopLabel(seconds: number): string {
+  return seconds < 60 ? `${seconds}${NB}s` : `${Math.round(seconds / 6) / 10}${NB}min`.replace('.', ',');
 }
 
 /** Pictogrammes de ravito (tracés Lucide, grille 24 px) : bouteille (« milk ») et couverts (« utensils »). */

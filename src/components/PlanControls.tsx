@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { NB, dec, hms, ms } from '../lib/format';
+import { STOP_CHOICES, type AidStops } from '../lib/aid-stations';
+import { NB, dec, dur, hms, ms } from '../lib/format';
 import { DESCENT_WEIGHT, parseDuration } from '../lib/pace-model';
 import { TOTAL_MAX, TOTAL_MIN } from '../lib/usePlanSettings';
 import { Icon } from './ds/Icon';
@@ -24,9 +25,15 @@ interface Props {
   onTotal: (total: number) => void;
   onThreshold: (threshold: number) => void;
   onDescentWeight: (descentWeight: number) => void;
+  aidStops: AidStops;
+  /** Nombre de ravitos de la course par type (hors arrivée). */
+  aidCounts: Record<keyof AidStops, number>;
+  /** Total des arrêts comptés, en secondes. */
+  stopSeconds: number;
+  onAidStops: (stops: AidStops) => void;
 }
 
-export function PlanControls({ km, totalSeconds, threshold, descentWeight, sectionCount, onTotal, onThreshold, onDescentWeight }: Props) {
+export function PlanControls({ km, totalSeconds, threshold, descentWeight, sectionCount, onTotal, onThreshold, onDescentWeight, aidStops, aidCounts, stopSeconds, onAidStops }: Props) {
   // Texte en cours de saisie : affiché tant que le champ a le focus ou est en erreur.
   const [draft, setDraft] = useState<Record<Mode, string | null>>({ time: null, pace: null });
   const [errors, setErrors] = useState<Record<Mode, boolean>>({ time: false, pace: false });
@@ -165,6 +172,45 @@ export function PlanControls({ km, totalSeconds, threshold, descentWeight, secti
           {profileMsg}
         </p>
       </div>
+
+      {aidCounts.eau + aidCounts.complet > 0 && (
+        <div className="field">
+          <span className="field__label" id="lbl-stops">
+            Arrêts aux ravitos
+          </span>
+          <div className="stops" role="group" aria-labelledby="lbl-stops" aria-describedby="msg-stops">
+            {(['eau', 'complet'] as const)
+              .filter((type) => aidCounts[type] > 0)
+              .map((type) => (
+                <label key={type} className="stops__item">
+                  <span className="stops__label">{type === 'eau' ? 'Point d’eau' : 'Complet'}</span>
+                  <select
+                    className="field__input stops__select"
+                    value={aidStops[type]}
+                    onChange={(e) => onAidStops({ ...aidStops, [type]: Number(e.currentTarget.value) })}
+                  >
+                    {STOP_CHOICES.map((s) => (
+                      <option key={s} value={s}>
+                        {stopLabel(s)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+          </div>
+          <p className="field__msg" id="msg-stops">
+            {stopSeconds > 0
+              ? `${aidCounts.eau + aidCounts.complet} ravitos, ${dur(stopSeconds)} d’arrêt au total : le temps de course est réduit d’autant.`
+              : 'Aucun arrêt compté : réglez la durée passée à chaque ravito.'}
+          </p>
+        </div>
+      )}
     </form>
   );
+}
+
+/** 0 → « Aucun », 30 → « 30 s », 120 → « 2 min » */
+function stopLabel(seconds: number): string {
+  if (seconds === 0) return 'Aucun';
+  return seconds < 60 ? `${seconds}${NB}s` : `${seconds / 60}${NB}min`;
 }

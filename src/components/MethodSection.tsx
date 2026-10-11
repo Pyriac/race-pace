@@ -1,5 +1,5 @@
 import { NB, dec, int, ms, signed } from '../lib/format';
-import { CLIMB_M_PER_KM, cost, flatPaceSecPerKm, type Plan, type PreparedCourse } from '../lib/pace-model';
+import { CLIMB_M_PER_KM, cost, type Plan, type PreparedCourse } from '../lib/pace-model';
 import { Notice } from './ds/Notice';
 
 const GRADES = [-20, -15, -10, -5, 0, 5, 10, 15, 20, 25];
@@ -7,13 +7,14 @@ const GRADES = [-20, -15, -10, -5, 0, 5, 10, 15, 20, 25];
 interface Props {
   plan: Plan;
   prepared: PreparedCourse;
-  totalSeconds: number;
+  /** Allure sur le plat (s/km), calculée sur le temps de course (arrêts aux ravitos déduits). */
+  flatPaceSecPerKm: number;
   courseLabel: string;
   officialDPlus?: number;
 }
 
-export function MethodSection({ plan, prepared, totalSeconds, courseLabel, officialDPlus }: Props) {
-  const flat = flatPaceSecPerKm(plan, totalSeconds);
+export function MethodSection({ plan, prepared, flatPaceSecPerKm, courseLabel, officialDPlus }: Props) {
+  const flat = flatPaceSecPerKm;
   return (
     <section className="block">
       <h2>Comment le temps est réparti</h2>

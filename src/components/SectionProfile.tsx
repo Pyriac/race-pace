@@ -1,12 +1,14 @@
 // Profil altimétrique coloré par section : variante d'ElevationProfile décrite dans .claude/INTEGRATION.md.
 import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { NB, dec, hms, int, ms, signed } from '../lib/format';
-import { localGradePct, sectionIndexAt, timeAtIndex, type Plan, type PreparedCourse } from '../lib/pace-model';
+import { passageAtIndex, type TimedSchedule } from '../lib/aid-stations';
+import { localGradePct, sectionIndexAt, type Plan, type PreparedCourse } from '../lib/pace-model';
 
 interface Props {
   prepared: PreparedCourse;
   plan: Plan;
-  totalSeconds: number;
+  /** Plan avec arrêts aux ravitos : le passage au survol les inclut. */
+  schedule: TimedSchedule;
   /** Section surlignée (position dans plan.sections), -1 sinon. */
   active: number;
   cursor: number;
@@ -15,7 +17,7 @@ interface Props {
 
 const M = { l: 54, r: 10, t: 30, b: 28 };
 
-export function SectionProfile({ prepared, plan, totalSeconds, active, cursor, onCursor }: Props) {
+export function SectionProfile({ prepared, plan, schedule, active, cursor, onCursor }: Props) {
   const plotRef = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(0);
@@ -182,11 +184,11 @@ export function SectionProfile({ prepared, plan, totalSeconds, active, cursor, o
               <span>Section {cursorSection.index} · {cursorSection.climb ? 'montée' : 'descente'}</span>
             </div>
             {[
-              ['Passage', hms(timeAtIndex(plan, totalSeconds, cursor))],
+              ['Passage', hms(passageAtIndex(prepared, plan, schedule, cursor))],
               ['Distance', `${dec((cursor * stepM) / 1000, 2)}${NB}km`],
               ['Altitude', `${int(alt[cursor]!)}${NB}m`],
               ['Pente', `${signed(localGradePct(prepared, cursor))}${NB}%`],
-              ['Allure section', ms((totalSeconds / km) * cursorSection.coef)],
+              ['Allure section', ms((schedule.movingSeconds / km) * cursorSection.coef)],
             ].map(([label, value]) => (
               <div className="tip__row" key={label}>
                 <span>{label}</span>

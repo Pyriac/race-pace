@@ -9,17 +9,32 @@ import { SectionProfile } from './components/SectionProfile';
 import { SectionsTable } from './components/SectionsTable';
 import { courses } from './data/courses';
 import { NB } from './lib/format';
-import { computePlan, prepareCourse, sectionIndexAt, sectionSchedule } from './lib/pace-model';
+import { mergeAidStations, scheduleWithStops } from './lib/aid-stations';
+import { computePlan, prepareCourse, sectionIndexAt } from './lib/pace-model';
 import { usePlanSettings } from './lib/usePlanSettings';
 
 export function App() {
-  const { course, totalSeconds, threshold, descentWeight, setCourse, setTotal, setThreshold, setDescentWeight } = usePlanSettings();
+  const {
+    course, totalSeconds, threshold, descentWeight, aidStops,
+    setCourse, setTotal, setThreshold, setDescentWeight, setAidStops,
+  } = usePlanSettings();
 
-  // Les trois couches du modèle : profil (par course), découpage (par réglage), passages (par temps visé).
+  // Les trois couches du modèle : profil (par course), découpage (par réglage), passages (par temps visé),
+  // les passages intégrant les arrêts aux ravitos.
   const prepared = useMemo(() => prepareCourse(course.data), [course]);
   const plan = useMemo(() => computePlan(prepared, { threshold, descentWeight }), [prepared, threshold, descentWeight]);
-  const schedule = useMemo(() => sectionSchedule(plan, totalSeconds), [plan, totalSeconds]);
+  const schedule = useMemo(
+    () => scheduleWithStops(prepared, plan, totalSeconds, course.aidStations, aidStops),
+    [prepared, plan, totalSeconds, course, aidStops],
+  );
   const km = prepared.lengthM / 1000;
+
+  // Ravitos comptés dans le réglage (ceux situés sur le parcours, hors arrivée).
+  const aidCounts = useMemo(() => {
+    const counts = { eau: 0, complet: 0 };
+    for (const l of mergeAidStations([], course.aidStations, prepared.lengthM - 50)) if (l.kind === 'aid') counts[l.aid.type]++;
+    return counts;
+  }, [course, prepared]);
 
   // Survol lié : profil ↔ tableau.
   const [cursor, setCursor] = useState(-1);
@@ -91,6 +106,10 @@ export function App() {
           resetHover();
           setDescentWeight(w);
         }}
+        aidStops={aidStops}
+        aidCounts={aidCounts}
+        stopSeconds={schedule.stopSeconds}
+        onAidStops={setAidStops}
       />
 
       <PaceSummary schedule={schedule} km={km} />
@@ -98,7 +117,7 @@ export function App() {
       <SectionProfile
         prepared={prepared}
         plan={plan}
-        totalSeconds={totalSeconds}
+        schedule={schedule}
         active={active}
         cursor={cursor}
         onCursor={setCursor}
@@ -109,19 +128,12 @@ export function App() {
       <MethodSection
         plan={plan}
         prepared={prepared}
-        totalSeconds={totalSeconds}
+        flatPaceSecPerKm={schedule.flatPaceSecPerKm}
         courseLabel={course.label}
         officialDPlus={course.officialDPlus}
       />
 
-      <ExportButton
-        courseId={course.id}
-        courseLabel={course.label}
-        prepared={prepared}
-        plan={plan}
-        schedule={schedule}
-        aidStations={course.aidStations}
-      />
+      <ExportButton courseId={course.id} courseLabel={course.label} prepared={prepared} plan={plan} schedule={schedule} />
     </main>
   );
 }

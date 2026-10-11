@@ -1,12 +1,13 @@
 import { NB, dec, dur, hms, ms } from '../lib/format';
-import type { GroupSummary, Schedule } from '../lib/pace-model';
+import type { TimedSchedule } from '../lib/aid-stations';
+import type { GroupSummary } from '../lib/pace-model';
 import { Icon } from './ds/Icon';
 
 function detail(g: GroupSummary) {
   return `${dec(g.distM / 1000, 1)}${NB}km en ${dur(g.seconds)} · ${g.count} ${g.count > 1 ? 'sections' : 'section'}`;
 }
 
-export function PaceSummary({ schedule, km }: { schedule: Schedule; km: number }) {
+export function PaceSummary({ schedule, km }: { schedule: TimedSchedule; km: number }) {
   const { climb, descent } = schedule;
   return (
     <section className="summary" aria-label="Allures résumées">
@@ -19,6 +20,7 @@ export function PaceSummary({ schedule, km }: { schedule: Schedule; km: number }
         <span className="stat__detail">
           {dec(km, 1)}
           {NB}km en {hms(schedule.totalSeconds)} · {ms(schedule.flatPaceSecPerKm)} sur le plat
+          {schedule.stopSeconds > 0 && ` · dont ${dur(schedule.stopSeconds)} d’arrêt`}
         </span>
       </div>
       <div className="stat">

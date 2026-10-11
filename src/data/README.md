@@ -38,6 +38,8 @@ aidStations: [
 - `type` : `'eau'` (pictogramme bouteille, « Point d'eau ») ou `'complet'` (couverts, « Ravitaillement complet »).
 - `name` : nom du lieu, facultatif, non affiché pour l'instant.
 
+**Arrêts.** Le réglage « Arrêts aux ravitos » (une durée par type, 0 par défaut) entre dans le calcul (`scheduleWithStops`, `src/lib/aid-stations.ts`) : le temps visé reste l'heure d'arrivée, les arrêts en sont déduits et le temps de course restant est réparti en km-effort. Les passages incluent les arrêts déjà faits ; un ravito à l'arrivée ne compte pas. Dans le tableau, chaque ravito a sa ligne (durée d'arrêt, heure d'arrivée).
+
 Dans l'image téléchargée, chaque ravito devient une ligne entre les sections, à son kilométrage (logique dans `src/lib/aid-stations.ts`). Un ravito à moins de 50 m de la fin d'une section est placé après elle ; un ravito hors du parcours est ignoré. Aperçu avec des ravitos fictifs : `/export-preview.html?ravitos=demo`.
 
 ## Format

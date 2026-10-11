@@ -1,5 +1,8 @@
-// Ravitaillements : insertion dans la liste des sections, dans l'ordre du parcours.
-import type { ScheduleRow } from './pace-model';
+// Ravitaillements : insertion dans la liste des sections, dans l'ordre du parcours, et temps d'arrêt.
+import {
+  indexAtDistance, sectionSchedule, timeAtIndex,
+  type Plan, type PreparedCourse, type Schedule, type ScheduleRow,
+} from './pace-model';
 
 export type AidType = 'eau' | 'complet';
 
@@ -39,6 +42,88 @@ export function mergeAidStations(rows: ScheduleRow[], aidStations: AidStation[] 
   }
   while (i < aids.length) lines.push({ kind: 'aid', aid: aids[i++]! });
   return lines;
+}
+
+/** Temps d'arrêt par type de ravito, en secondes. */
+export type AidStops = Record<AidType, number>;
+export const NO_STOPS: AidStops = Object.freeze({ eau: 0, complet: 0 });
+/** Durées proposées dans le réglage, en secondes. */
+export const STOP_CHOICES = [0, 30, 60, 120, 180, 300, 600] as const;
+
+export type TimedLine =
+  | { kind: 'section'; row: ScheduleRow }
+  | { kind: 'aid'; aid: AidStation; arrivalSeconds: number; stopSeconds: number };
+
+export interface TimedSchedule extends Schedule {
+  /** Temps de course, arrêts déduits : c'est lui qui est réparti entre les sections. */
+  movingSeconds: number;
+  /** Total des arrêts aux ravitos (hors ravito placé à l'arrivée). */
+  stopSeconds: number;
+  /** Sections et ravitos dans l'ordre du parcours, avec heure d'arrivée et arrêt de chaque ravito. */
+  lines: TimedLine[];
+}
+
+/**
+ * Plan avec arrêts aux ravitos. Le temps visé reste l'heure d'arrivée :
+ * - les arrêts sont déduits, le temps de course restant est réparti comme sans ravito (sectionSchedule) ;
+ * - le passage d'une section inclut les arrêts déjà faits, la durée d'une section reste son temps de course ;
+ * - un ravito à l'arrivée (à 50 m près) ne compte pas : on s'y arrête une fois la course finie.
+ * Les allures (sections, montée, descente, plat) sont celles du temps de course ;
+ * l'allure moyenne affichée reste celle du temps visé, arrêts compris.
+ */
+export function scheduleWithStops(
+  prepared: PreparedCourse,
+  plan: Plan,
+  totalSeconds: number,
+  aidStations: AidStation[] = [],
+  stops: AidStops = NO_STOPS,
+): TimedSchedule {
+  const atFinish = (a: AidStation) => a.km * 1000 >= prepared.lengthM - AT_SECTION_END_M;
+  const stopOf = (a: AidStation) => (atFinish(a) ? 0 : Math.max(0, stops[a.type] ?? 0));
+  const merged = mergeAidStations([], aidStations, prepared.lengthM).map((l) => (l.kind === 'aid' ? l.aid : null));
+  const onCourse = merged.filter((a): a is AidStation => a !== null);
+  const stopSeconds = onCourse.reduce((sum, a) => sum + stopOf(a), 0);
+  // Garde-fou : il reste toujours au moins une minute de course.
+  const movingSeconds = Math.max(60, totalSeconds - stopSeconds);
+  const base = sectionSchedule(plan, movingSeconds);
+
+  let stopsSoFar = 0;
+  let previous: ScheduleRow | null = null;
+  const lines: TimedLine[] = mergeAidStations(base.rows, onCourse, prepared.lengthM).map((line) => {
+    if (line.kind === 'section') {
+      const row = { ...line.row, passageSeconds: line.row.passageSeconds + stopsSoFar };
+      previous = line.row;
+      return { kind: 'section', row };
+    }
+    const { aid } = line;
+    // Ravito en fin de section : même heure que le passage de la section, pour rester cohérent avec le tableau.
+    const atPreviousEnd = previous !== null && Math.abs(aid.km * 1000 - (previous as ScheduleRow).endM) <= AT_SECTION_END_M;
+    const running = atPreviousEnd
+      ? (previous as ScheduleRow).passageSeconds
+      : Math.round(timeAtIndex(plan, movingSeconds, indexAtDistance(prepared, aid.km * 1000)));
+    const stop = stopOf(aid);
+    const arrivalSeconds = running + stopsSoFar;
+    stopsSoFar += stop;
+    return { kind: 'aid', aid, arrivalSeconds, stopSeconds: stop };
+  });
+
+  return {
+    ...base,
+    totalSeconds,
+    meanPaceSecPerKm: totalSeconds / (prepared.lengthM / 1000),
+    rows: lines.flatMap((l) => (l.kind === 'section' ? [l.row] : [])),
+    lines,
+    movingSeconds,
+    stopSeconds,
+  };
+}
+
+/** Temps de passage au point d'index `i` du profil, arrêts aux ravitos situés avant ce point compris. */
+export function passageAtIndex(prepared: PreparedCourse, plan: Plan, schedule: TimedSchedule, i: number): number {
+  const meters = i * prepared.stepM;
+  let stops = 0;
+  for (const line of schedule.lines) if (line.kind === 'aid' && line.aid.km * 1000 < meters) stops += line.stopSeconds;
+  return timeAtIndex(plan, schedule.movingSeconds, i) + stops;
 }
 
 /** Libellé affiché sur la ligne du ravito. */

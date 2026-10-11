@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { courses, findCourse } from '../data/courses';
+import { NO_STOPS, STOP_CHOICES, type AidStops } from './aid-stations';
 import { DESCENT_WEIGHT, THRESHOLDS } from './pace-model';
 
 /** Bornes du temps total accepté (0:45:00 à 12:00:00). */
@@ -18,10 +19,14 @@ export interface PlanSettings {
   threshold: number;
   /** Poids d'un kilomètre de descente (0,85 à 1,15). */
   descentWeight: number;
+  /** Temps d'arrêt à chaque ravito, par type (secondes). */
+  aidStops: AidStops;
 }
 
+const validStop = (v: unknown) => (STOP_CHOICES as readonly number[]).includes(v as number) ? (v as number) : 0;
+
 function load(): PlanSettings {
-  const fallback: PlanSettings = { courseId: courses[0]!.id, totals: {}, threshold: THRESHOLDS.moyen, descentWeight: DESCENT_WEIGHT.neutral };
+  const fallback: PlanSettings = { courseId: courses[0]!.id, totals: {}, threshold: THRESHOLDS.moyen, descentWeight: DESCENT_WEIGHT.neutral, aidStops: NO_STOPS };
   let s = fallback;
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || 'null') as Partial<PlanSettings> | null;
@@ -38,6 +43,10 @@ function load(): PlanSettings {
           saved.descentWeight <= DESCENT_WEIGHT.max + 1e-9
             ? saved.descentWeight
             : DESCENT_WEIGHT.neutral,
+        aidStops: {
+          eau: validStop(saved.aidStops?.eau),
+          complet: validStop(saved.aidStops?.complet),
+        },
       };
     }
   } catch {
@@ -69,9 +78,11 @@ export function usePlanSettings() {
     totalSeconds,
     threshold: settings.threshold,
     descentWeight: settings.descentWeight,
+    aidStops: settings.aidStops,
     setCourse: (courseId: string) => setSettings((s) => ({ ...s, courseId })),
     setTotal: (total: number) => setSettings((s) => ({ ...s, totals: { ...s.totals, [course.id]: total } })),
     setThreshold: (threshold: number) => setSettings((s) => ({ ...s, threshold })),
     setDescentWeight: (descentWeight: number) => setSettings((s) => ({ ...s, descentWeight })),
+    setAidStops: (aidStops: AidStops) => setSettings((s) => ({ ...s, aidStops })),
   };
 }

@@ -20,6 +20,17 @@ const PATHS = {
   // Ajouts au jeu du design system (Lucide) : export et pente des sections.
   'trend-up': [['path', { d: 'M22 7 13.5 15.5 8.5 10.5 2 17' }], ['path', { d: 'M16 7h6v6' }]],
   'trend-down': [['path', { d: 'M22 17 13.5 8.5 8.5 13.5 2 7' }], ['path', { d: 'M16 17h6v-6' }]],
+  // Ravitos : bouteille (point d'eau) et couverts (ravitaillement complet), mêmes tracés que l'image exportée.
+  milk: [
+    ['path', { d: 'M8 2h8' }],
+    ['path', { d: 'M9 2v2.789a4 4 0 0 1-.672 2.219l-.656.984A4 4 0 0 0 7 10.212V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9.789a4 4 0 0 0-.672-2.219l-.656-.984A4 4 0 0 1 15 4.788V2' }],
+    ['path', { d: 'M7 15a6.472 6.472 0 0 1 5 0 6.47 6.47 0 0 0 5 0' }],
+  ],
+  utensils: [
+    ['path', { d: 'M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2' }],
+    ['path', { d: 'M7 2v20' }],
+    ['path', { d: 'M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7' }],
+  ],
   download: [['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }], ['path', { d: 'm7 10 5 5 5-5' }], ['path', { d: 'M12 15V3' }]],
 } satisfies Record<string, Shape[]>;
 

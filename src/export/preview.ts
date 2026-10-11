@@ -1,16 +1,19 @@
 // Aperçu de l'image exportée pour chaque course et chaque découpage (page de dev : /export-preview.html).
-// ?t=9405 pour changer le temps visé, ?w=0.85 pour le poids de la descente, ?ravitos=demo pour des ravitos fictifs.
+// ?t=9405 temps visé, ?w=0.85 poids de la descente, ?ravitos=demo ravitos fictifs, ?eau=30&complet=180 arrêts (s).
 import '@fontsource/barlow/500.css';
 import '@fontsource/barlow/600.css';
 import '@fontsource/barlow-condensed/600.css';
 import '@fontsource/barlow-condensed/700.css';
 import { courses } from '../data/courses';
-import type { AidStation } from '../lib/aid-stations';
-import { computePlan, prepareCourse, sectionSchedule, THRESHOLDS } from '../lib/pace-model';
+import { scheduleWithStops, type AidStation } from '../lib/aid-stations';
+import { computePlan, prepareCourse, THRESHOLDS } from '../lib/pace-model';
 import { renderPlanImage } from './renderPlanImage';
 
 const params = new URLSearchParams(location.search);
 const descentWeight = Number(params.get('w') ?? 1);
+// ?eau=30&complet=180 : temps d'arrêt aux ravitos, en secondes.
+const stopEau = Number(params.get('eau') ?? 0);
+const stopComplet = Number(params.get('complet') ?? 0);
 // ?ravitos=demo : ravitos fictifs (alternance eau / complet tous les ~7 km) pour vérifier la mise en page.
 const demoAid = params.get('ravitos') === 'demo';
 function demoAidStations(km: number): AidStation[] {
@@ -30,8 +33,13 @@ for (const course of courses) {
       courseLabel: course.label,
       prepared,
       plan,
-      schedule: sectionSchedule(plan, total),
-      aidStations: demoAid ? demoAidStations(prepared.lengthM / 1000) : course.aidStations,
+      schedule: scheduleWithStops(
+        prepared,
+        plan,
+        total,
+        demoAid ? demoAidStations(prepared.lengthM / 1000) : course.aidStations,
+        { eau: stopEau, complet: stopComplet },
+      ),
     });
     canvas.style.width = '360px';
     canvas.style.borderRadius = '24px';
